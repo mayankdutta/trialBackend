@@ -1,6 +1,7 @@
 /*
  *  if we want to GET the data from the database, we use GET method
- *  if we want to save something in our database, we use POST method
+ *  if we want to SAVE something in our database, we use POST method
+ *  If we want to DELETE something in out database, we use DELETE method
  */
 const express = require("express");
 const cors = require("cors");
@@ -62,7 +63,12 @@ app.get("/products", async (req, res) => {
             result: "No products found"
         })
     }
+})
 
+// req.params to get the parameter mentioned in URL like id
+app.delete("/products/:id", async (req, res) => {
+    const result = await Product.deleteOne({_id: req.params.id})
+    res.send(result);
 })
 
 app.listen(5000, () => {
