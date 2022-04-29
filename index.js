@@ -18,78 +18,99 @@ app.use(express.json());
 app.use(cors());
 
 app.post("/register", async (req, res) => {
-  let user = new User(req.body);
-  let result = await user.save();
+    let user = new User(req.body);
+    let result = await user.save();
 
-  // removing password field from the register page as well.
-  // couldn't use .select as we did below because this ain't mongo db
-  result = result.toObject();
-  delete result.password;
+    // removing password field from the register page as well.
+    // couldn't use .select as we did below because this ain't mongo db
+    result = result.toObject();
+    delete result.password;
 
-  res.send(result);
+    res.send(result);
 });
 
 app.post("/login", async (req, res) => {
-  // removed password from the login
-  let user = await User.findOne(req.body).select("-password");
-  if (req.body.password && req.body.email) {
-    if (user) {
-      res.send(user);
+    // removed password from the login
+    let user = await User.findOne(req.body).select("-password");
+    if (req.body.password && req.body.email) {
+        if (user) {
+            res.send(user);
+        } else {
+            res.send({
+                result: "no user found",
+            });
+        }
     } else {
-      res.send({
-        result: "no user found",
-      });
+        res.send({
+            result: "no user found",
+        });
     }
-  } else {
-    res.send({
-      result: "no user found",
-    });
-  }
 });
 
 app.post("/add-product", async (req, res) => {
-  let product = new Product(req.body);
-  let result = await product.save();
-  res.send(result);
+    let product = new Product(req.body);
+    let result = await product.save();
+    res.send(result);
 });
 
 // await can only be used in async function.
 app.get("/products", async (req, res) => {
-  let products = await Product.find();
-  if (products.length > 0) {
-    res.send(products);
-  } else {
-    res.send({
-      result: "No products found",
-    });
-  }
+    let products = await Product.find();
+    if (products.length > 0) {
+        res.send(products);
+    } else {
+        res.send({
+            result: "No products found",
+        });
+    }
 });
 
 // req.params to get the parameter mentioned in URL like id
 app.delete("/products/:id", async (req, res) => {
-  const result = await Product.deleteOne({ _id: req.params.id });
-  res.send(result);
+    const result = await Product.deleteOne({_id: req.params.id});
+    res.send(result);
 });
 
 app.get("/products/:id", async (req, res) => {
-  let result = await Product.findOne({ _id: req.params.id });
-  if (result) {
-    // sending data as a promise to the frontend.
-    res.send(result);
-  } else {
-    res.send({ result: "No record found" });
-  }
+    let result = await Product.findOne({_id: req.params.id});
+    if (result) {
+        // sending data as a promise to the frontend.
+        res.send(result);
+    } else {
+        res.send({result: "No record found"});
+    }
 });
 
 app.put("/products/:id", async (req, res) => {
-  // accept two pramaters, id of the data that is already in there, new data;
-  let result = await Product.updateOne(
-    { _id: req.params.id },
-    {
-      $set: req.body,
-    }
-  );
-  res.send(result);
+    // accept two pramaters, id of the data that is already in there, new data;
+    let result = await Product.updateOne({_id: req.params.id}, {
+        $set: req.body,
+    });
+    res.send(result);
 });
 
-app.listen(5000, () => {});
+app.get("/search/:key", async (req, res) => {
+    let result = await Product.find({
+        "$or": [{
+            name: {
+                $regex: req.params.key
+            }
+        }, {
+            company: {
+                $regex: req.params.key
+            }
+        },
+            {
+                category: {
+                    $regex: req.params.key
+                }
+            }
+        ]
+    })
+    // without mentioning this you won't be seeing data on your frontend side
+    res.send(result);
+
+})
+
+app.listen(5000, () => {
+});
