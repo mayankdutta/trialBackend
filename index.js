@@ -2,6 +2,7 @@
  *  if we want to GET the data from the database, we use GET method
  *  if we want to SAVE something in our database, we use POST method
  *  If we want to DELETE something in out database, we use DELETE method
+ *  If we want to UPDATE something that is already in our database, we use PUT method
  */
 const express = require("express");
 const cors = require("cors");
@@ -78,6 +79,17 @@ app.get("/products/:id", async (req, res) => {
   } else {
     res.send({ result: "No record found" });
   }
+});
+
+app.put("/products/:id", async (req, res) => {
+  // accept two pramaters, id of the data that is already in there, new data;
+  let result = await Product.updateOne(
+    { _id: req.params.id },
+    {
+      $set: req.body,
+    }
+  );
+  res.send(result);
 });
 
 app.listen(5000, () => {});
