@@ -6,6 +6,9 @@
  */
 const express = require("express");
 const cors = require("cors");
+const Jwt = require("jsonwebtoken")
+
+const jwtKey = 'e-comm'
 
 require("./db/config");
 const User = require("./db/User");
@@ -34,7 +37,13 @@ app.post("/login", async (req, res) => {
     let user = await User.findOne(req.body).select("-password");
     if (req.body.password && req.body.email) {
         if (user) {
-            res.send(user);
+            Jwt.sign({user}, jwtKey, {expiresIn: "2h"}, (err, token) => {
+                if (err) {
+                    res.send({result: "something went wrong"})
+                }
+                res.send({user, auth: token})
+            })
+            // res.send(user);
         } else {
             res.send({
                 result: "no user found",
